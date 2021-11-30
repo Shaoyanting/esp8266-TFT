@@ -1,16 +1,33 @@
-# esp8266_tft
+<h1 align="center">
+<b>ESP8266_tft</b>
+</h1>
 
-A new Flutter project.
+<div align="center">
+
+物联网应用 & 安卓开发大作业
+
+</div>
+
+## Features
+
+TODO
+
+## Installation
+
+TODO
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+TODO
 
-A few resources to get you started if this is your first Flutter project:
+## Links
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+TODO
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Contribution
+
+TODO
+
+## License
+
+MIT
