@@ -9,6 +9,8 @@ class Preview extends StatefulWidget {
 }
 
 class _PreviewState extends State<Preview> {
+  final TextEditingController pathController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,9 +76,31 @@ class _PreviewState extends State<Preview> {
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
-                  child: Text('data'),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+                  child: Form(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: const [
+                          TextField(
+                            autofocus: true,
+                            decoration: InputDecoration(
+                                hintText: "用户名或邮箱",
+                                prefixIcon: Icon(Icons.person)
+                            ),
+                          ),
+                          TextField(
+                            decoration: InputDecoration(
+                                hintText: "您的登录密码",
+                                prefixIcon: Icon(Icons.lock)
+                            ),
+                            obscureText: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 )
               ],
             )));
