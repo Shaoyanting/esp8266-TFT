@@ -10,6 +10,7 @@ class Preview extends StatefulWidget {
 
 class _PreviewState extends State<Preview> {
   final TextEditingController pathController = TextEditingController();
+  int currentTheme = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -82,20 +83,55 @@ class _PreviewState extends State<Preview> {
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
-                        children: const [
-                          TextField(
-                            autofocus: true,
-                            decoration: InputDecoration(
-                                hintText: "用户名或邮箱",
-                                prefixIcon: Icon(Icons.person)
-                            ),
+                        children: [
+                          Row(
+                            children: [
+                              const Text("选择主题: "),
+                              Radio(
+                                // 按钮的值
+                                value: 0,
+                                // 改变事件
+                                onChanged: (value) {
+                                  setState(() {
+                                    currentTheme = 0;
+                                  });
+                                },
+                                // 按钮组的值
+                                groupValue: currentTheme,
+                              ),
+                              const Text("图片展示"),
+                              const SizedBox(width: 20),
+                              Radio(
+                                // 按钮的值
+                                value: 1,
+                                // 改变事件
+                                onChanged: (value) {
+                                  setState(() {
+                                    currentTheme = 1;
+                                  });
+                                },
+                                // 按钮组的值
+                                groupValue: currentTheme,
+                              ),
+                              const Text("列表信息")
+                            ],
                           ),
-                          TextField(
-                            decoration: InputDecoration(
-                                hintText: "您的登录密码",
-                                prefixIcon: Icon(Icons.lock)
+                          Row(
+                            children: const [
+                              Text("底部消息: "),
+                              Expanded(child: TextField())
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 60),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints.expand(
+                                  height: 40.0, width: 300),
+                              child: ElevatedButton(
+                                onPressed: () => {},
+                                child: const Text("保存并同步"),
+                              ),
                             ),
-                            obscureText: true,
                           ),
                         ],
                       ),
