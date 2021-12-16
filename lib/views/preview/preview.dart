@@ -11,6 +11,34 @@ class Preview extends StatefulWidget {
 class _PreviewState extends State<Preview> {
   final TextEditingController pathController = TextEditingController();
   int currentTheme = 0;
+  TextEditingController messageListController = TextEditingController();
+
+  Row renderTheme(int themeType) {
+    if (themeType == 0) {
+      return Row(
+        children: [
+          Text("上传图片: "),
+          ElevatedButton(
+            onPressed: () => {},
+            child: Text("点我上传"),
+          )
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        const Text("消息列表: "),
+        Expanded(
+            child: TextField(
+          controller: messageListController,
+          minLines: 5,
+          maxLines: 5,
+          maxLength: 100,
+        ))
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +144,9 @@ class _PreviewState extends State<Preview> {
                               const Text("列表信息")
                             ],
                           ),
+                          SizedBox(height: 10),
+                          renderTheme(currentTheme),
+                          SizedBox(height: 10),
                           Row(
                             children: const [
                               Text("底部消息: "),
