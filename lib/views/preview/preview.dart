@@ -24,7 +24,7 @@ class _PreviewState extends State<Preview> {
         children: [
           const Text('上传图片: '),
           ElevatedButton(
-            onPressed: () => {},
+            onPressed: uploadImage,
             child: const Text('点我上传'),
           )
         ],
@@ -45,7 +45,9 @@ class _PreviewState extends State<Preview> {
     );
   }
 
-  Future<void> saveAndSync() async {
+  Future<void> saveAndSync() async {}
+
+  Future<void> uploadImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
