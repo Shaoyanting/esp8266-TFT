@@ -39,9 +39,9 @@ class _MyStackPageState extends State<MyStackPage> {
         unselectedFontSize: 14,
         type: BottomNavigationBarType.fixed,
         items: [
-          createItem(Icons.connected_tv, "连接"),
-          createItem(Icons.remove_red_eye, "预览"),
-          createItem(Icons.adb, "调试"),
+          createItem(Icons.connected_tv, '连接'),
+          createItem(Icons.remove_red_eye, '预览'),
+          createItem(Icons.adb, '调试'),
         ],
         onTap: (index) {
           setState(() {

@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Preview extends StatefulWidget {
   const Preview({Key? key}) : super(key: key);
@@ -9,18 +12,20 @@ class Preview extends StatefulWidget {
 }
 
 class _PreviewState extends State<Preview> {
-  final TextEditingController pathController = TextEditingController();
   int currentTheme = 0;
+  Uint8List currentImageByteList = Uint8List(0);
+
+  final TextEditingController pathController = TextEditingController();
   TextEditingController messageListController = TextEditingController();
 
   Row renderTheme(int themeType) {
     if (themeType == 0) {
       return Row(
         children: [
-          Text("上传图片: "),
+          const Text('上传图片: '),
           ElevatedButton(
             onPressed: () => {},
-            child: Text("点我上传"),
+            child: const Text('点我上传'),
           )
         ],
       );
@@ -28,7 +33,7 @@ class _PreviewState extends State<Preview> {
 
     return Row(
       children: [
-        const Text("消息列表: "),
+        const Text('消息列表: '),
         Expanded(
             child: TextField(
           controller: messageListController,
@@ -38,6 +43,17 @@ class _PreviewState extends State<Preview> {
         ))
       ],
     );
+  }
+
+  Future<void> saveAndSync() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      Uint8List imageByteList = await image.readAsBytes();
+      setState(() {
+        currentImageByteList = imageByteList;
+      });
+    }
   }
 
   @override
@@ -76,13 +92,12 @@ class _PreviewState extends State<Preview> {
                           ],
                         ),
                         Row(
-                          children: const [
+                          children: [
                             Expanded(
                                 child: Padding(
-                              padding: EdgeInsets.fromLTRB(2, 8, 2, 8),
+                              padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
                               child: Image(
-                                image: NetworkImage(
-                                    "http://cdn.yuzzl.top/1179662.jpg"),
+                                image: MemoryImage(currentImageByteList),
                                 alignment: AlignmentDirectional.center,
                                 fit: BoxFit.fitWidth,
                                 height: 180,
@@ -114,7 +129,7 @@ class _PreviewState extends State<Preview> {
                         children: [
                           Row(
                             children: [
-                              const Text("选择主题: "),
+                              const Text('选择主题: '),
                               Radio(
                                 // 按钮的值
                                 value: 0,
@@ -127,7 +142,7 @@ class _PreviewState extends State<Preview> {
                                 // 按钮组的值
                                 groupValue: currentTheme,
                               ),
-                              const Text("图片展示"),
+                              const Text('图片展示'),
                               const SizedBox(width: 20),
                               Radio(
                                 // 按钮的值
@@ -141,15 +156,15 @@ class _PreviewState extends State<Preview> {
                                 // 按钮组的值
                                 groupValue: currentTheme,
                               ),
-                              const Text("列表信息")
+                              const Text('列表信息')
                             ],
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           renderTheme(currentTheme),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Row(
                             children: const [
-                              Text("底部消息: "),
+                              Text('底部消息: '),
                               Expanded(child: TextField())
                             ],
                           ),
@@ -159,8 +174,8 @@ class _PreviewState extends State<Preview> {
                               constraints: const BoxConstraints.expand(
                                   height: 40.0, width: 300),
                               child: ElevatedButton(
-                                onPressed: () => {},
-                                child: const Text("保存并同步"),
+                                onPressed: saveAndSync,
+                                child: const Text('保存并同步'),
                               ),
                             ),
                           ),
