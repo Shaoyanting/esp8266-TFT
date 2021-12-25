@@ -2,9 +2,10 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'dart:io';
 
-Future<MqttClient> connect() async {
+Future<MqttClient> connect(
+    String address, int port, String userName, String password) async {
   MqttServerClient client =
-      MqttServerClient.withPort('i016ea02.cn-hangzhou.emqxcloud.cn', 'flutter_client', 11410);
+      MqttServerClient.withPort(address, 'flutter_client', port);
   client.logging(on: true);
   client.onConnected = onConnected;
   client.onDisconnected = onDisconnected;
@@ -14,44 +15,48 @@ Future<MqttClient> connect() async {
   client.pongCallback = pong;
 
   final connMess = MqttConnectMessage()
-      .withClientIdentifier("flutter_client")
-      .authenticateAs("admin", "745719")
-      .keepAliveFor(60)
+      .withClientIdentifier('flutter_client')
+      .authenticateAs(userName, password)
       .withWillTopic('willtopic')
       .withWillMessage('My Will message')
       .startClean()
       .withWillQos(MqttQos.atLeastOnce);
+
   client.connectionMessage = connMess;
+
   try {
-    print('Connecting');
-    await client.connect();
-  } catch (e) {
-    print('Exception: $e');
+    await client.connect().timeout(const Duration(milliseconds: 5000));
+  } on NoConnectionException catch (e) {
+    // Raised by the client when connection fails.
+    print('EXAMPLE::client exception - $e');
+    client.disconnect();
+  } on SocketException catch (e) {
+    // Raised by the socket layer
+    print('EXAMPLE::socket exception - $e');
     client.disconnect();
   }
 
-  if (client.connectionStatus.state == MqttConnectionState.connected) {
-    print('EMQX client connected');
-    client.updates.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-      final MqttPublishMessage message = c[0].payload;
+  if (client.connectionStatus!.state == MqttConnectionState.connected) {
+    print('EMQX client connected!');
+    client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
       final payload =
           MqttPublishPayload.bytesToStringAsString(message.payload.message);
 
       print('Received message:$payload from topic: ${c[0].topic}>');
     });
 
-    client.published.listen((MqttPublishMessage message) {
+    client.published?.listen((MqttPublishMessage message) {
       print('published');
       final payload =
           MqttPublishPayload.bytesToStringAsString(message.payload.message);
       print(
-          'Published message: $payload to topic: ${message.variableHeader.topicName}');
+          'Published message: $payload to topic: ${message.variableHeader?.topicName}');
     });
   } else {
     print(
         'EMQX client connection failed - disconnecting, status is ${client.connectionStatus}');
     client.disconnect();
-    exit(-1);
   }
 
   return client;
@@ -73,7 +78,7 @@ void onSubscribeFail(String topic) {
   print('Failed to subscribe topic: $topic');
 }
 
-void onUnsubscribed(String topic) {
+void onUnsubscribed(String? topic) {
   print('Unsubscribed topic: $topic');
 }
 
