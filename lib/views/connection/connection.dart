@@ -1,6 +1,11 @@
 import 'package:esp8266_tft/utils/mqtt.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:wc_form_validators/wc_form_validators.dart';
+
+enum ConnectStatus { NOT_CONNECTED, CONNECTING, CONNECTED }
 
 class Connection extends StatefulWidget {
   const Connection({Key? key}) : super(key: key);
@@ -37,40 +42,45 @@ class _ConnectionContentState extends State<ConnectionContent> {
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  bool isConnecting = false;
+  ConnectStatus currentStatus = ConnectStatus.NOT_CONNECTED;
 
   Future<void> onLoginConfirm() async {
-    try {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Row(
-          children: const [
-            Icon(
-              Icons.check,
-              color: Colors.green,
-            ),
-            Padding(padding: EdgeInsets.only(left: 5), child: Text('连接中...'))
-          ],
-        ),
-      ));
+    if (!(_formKey.currentState as FormState).validate()) {
+      return;
+    }
+
+    if (currentStatus == ConnectStatus.NOT_CONNECTED) {
+      try {
+        setState(() {
+          currentStatus = ConnectStatus.CONNECTING;
+        });
+        EasyLoading.show(status: '连接中...');
+        await connect(
+            addressController.value.text,
+            int.parse(portController.value.text),
+            userNameController.value.text,
+            passwordController.value.text);
+
+        // await connect('118.31.246.213', 1883, 'yzl', 'password');
+        EasyLoading.showSuccess('连接成功!');
+        setState(() {
+          currentStatus = ConnectStatus.CONNECTED;
+        });
+      } catch (e) {
+        EasyLoading.showError('连接失败，请重试！');
+        setState(() {
+          currentStatus = ConnectStatus.NOT_CONNECTED;
+        });
+      }
+    } else if (currentStatus == ConnectStatus.CONNECTED) {
+      EasyLoading.show(status: '正在断开连接...');
+      MqttClient? client = getConnection();
+      if (client != null) {
+        client.disconnect();
+      }
+      EasyLoading.showSuccess('连接已断开');
       setState(() {
-        isConnecting = true;
-      });
-      await connect('119.31.246.213', 1883, 'yzl', 'password');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Row(
-          children: const [
-            Icon(
-              Icons.error,
-              color: Colors.red,
-            ),
-            Padding(padding: EdgeInsets.only(left: 5), child: Text('连接失败！'))
-          ],
-        ),
-      ));
-    } finally {
-      setState(() {
-        isConnecting = false;
+        currentStatus = ConnectStatus.NOT_CONNECTED;
       });
     }
   }
@@ -86,38 +96,56 @@ class _ConnectionContentState extends State<ConnectionContent> {
             children: [
               TextFormField(
                 controller: addressController,
+                validator: Validators.compose([
+                  Validators.required('请填写地址'),
+                ]),
                 decoration: const InputDecoration(
                   labelText: '地址',
-                  hintText: '请填写地址',
                   icon: Icon(Icons.settings_input_composite),
                 ),
               ),
               TextFormField(
                   controller: portController,
+                  validator: Validators.compose([
+                    Validators.required('请填写端口'),
+                  ]),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
                   decoration: const InputDecoration(
-                      labelText: '端口',
-                      hintText: '请填写端口',
-                      icon: Icon(Icons.important_devices))),
+                      labelText: '端口', icon: Icon(Icons.important_devices))),
               TextFormField(
                   controller: userNameController,
+                  validator: Validators.compose([
+                    Validators.required('请填写账号'),
+                  ]),
                   decoration: const InputDecoration(
-                      labelText: '账号',
-                      hintText: '请填写账号',
-                      icon: Icon(Icons.people))),
+                      labelText: '账号', icon: Icon(Icons.people))),
               TextFormField(
                   controller: passwordController,
+                  validator: Validators.compose([
+                    Validators.required('请填写密码'),
+                  ]),
                   decoration: const InputDecoration(
-                      labelText: '密码',
-                      hintText: '请填写密码',
-                      icon: Icon(Icons.lock))),
+                      labelText: '密码', icon: Icon(Icons.lock))),
               Padding(
                 padding: const EdgeInsets.only(top: 60),
                 child: ConstrainedBox(
                   constraints:
                       const BoxConstraints.expand(height: 40.0, width: 300),
                   child: ElevatedButton(
-                    onPressed: isConnecting ? null : onLoginConfirm,
-                    child: const Text('连接'),
+                    onPressed: currentStatus == ConnectStatus.CONNECTING
+                        ? null
+                        : onLoginConfirm,
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            currentStatus == ConnectStatus.CONNECTED
+                                ? Colors.redAccent
+                                : Colors.blue)),
+                    child: Text(currentStatus == ConnectStatus.CONNECTED
+                        ? '断开连接'
+                        : '连接'),
                   ),
                 ),
               ),

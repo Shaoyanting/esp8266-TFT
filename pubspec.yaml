@@ -37,6 +37,8 @@ dependencies:
   mqtt_client: ^9.6.3
   image_picker: ^0.8.4+4
   shared_preferences: ^2.0.11
+  flutter_easyloading: ^3.0.3
+  wc_form_validators: ^1.0.0
 
 dev_dependencies:
   flutter_test:

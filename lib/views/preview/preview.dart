@@ -1,8 +1,11 @@
 import 'dart:typed_data';
 
+import 'package:esp8266_tft/common/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Preview extends StatefulWidget {
   const Preview({Key? key}) : super(key: key);
@@ -13,10 +16,40 @@ class Preview extends StatefulWidget {
 
 class _PreviewState extends State<Preview> {
   int currentTheme = 0;
-  Uint8List currentImageByteList = Uint8List(0);
+  Uint8List? currentImageByteList;
+  String bottomMessage = '';
 
   final TextEditingController pathController = TextEditingController();
   TextEditingController messageListController = TextEditingController();
+  final TextEditingController bottomMessageController = TextEditingController();
+
+  @override
+  initState() {
+    super.initState();
+    //异步请求后台数据
+    Future.delayed(const Duration(milliseconds: 500), () => initPreviewState());
+  }
+
+  initPreviewState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // 图片资源
+    List<String>? imageByteList = prefs.getStringList(BACKGROUND_IMAGE_KEY);
+
+    // 底部消息
+    String? bottomMessage = prefs.getString(BOTTOM_MESSAGE_KEY);
+
+    setState(() {
+      this.bottomMessage = bottomMessage ?? '';
+      bottomMessageController.value =
+          TextEditingValue(text: bottomMessage ?? '');
+
+      if (imageByteList != null) {
+        currentImageByteList =
+            Uint8List.fromList(imageByteList.map((e) => int.parse(e)).toList());
+      }
+    });
+  }
 
   Row renderTheme(int themeType) {
     if (themeType == 0) {
@@ -37,7 +70,7 @@ class _PreviewState extends State<Preview> {
         Expanded(
             child: TextField(
           controller: messageListController,
-          minLines: 5,
+          minLines: 1,
           maxLines: 5,
           maxLength: 100,
         ))
@@ -45,7 +78,19 @@ class _PreviewState extends State<Preview> {
     );
   }
 
-  Future<void> saveAndSync() async {}
+  Future<void> saveAndSync() async {
+    EasyLoading.show(status: '保存中...');
+    Future.delayed(const Duration(milliseconds: 1000), () async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (currentImageByteList != null) {
+        await prefs.setStringList(BACKGROUND_IMAGE_KEY,
+            currentImageByteList!.map((e) => e.toString()).toList());
+      }
+      await prefs.setString(
+          BOTTOM_MESSAGE_KEY, bottomMessageController.value.text);
+      EasyLoading.showSuccess('保存成功!');
+    });
+  }
 
   Future<void> uploadImage() async {
     final ImagePicker _picker = ImagePicker();
@@ -98,22 +143,25 @@ class _PreviewState extends State<Preview> {
                             Expanded(
                                 child: Padding(
                               padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
-                              child: Image(
-                                image: MemoryImage(currentImageByteList),
-                                alignment: AlignmentDirectional.center,
-                                fit: BoxFit.fitWidth,
-                                height: 180,
-                              ),
+                              child: currentImageByteList != null
+                                  ? Image(
+                                      image: MemoryImage(currentImageByteList!),
+                                      alignment: AlignmentDirectional.center,
+                                      fit: BoxFit.fitWidth,
+                                      height: 180,
+                                    )
+                                  : null,
                             ))
                           ],
                         ),
                         Row(
-                          children: const [
+                          children: [
                             Expanded(
                                 child: Text(
-                              '同学你好！Flutter 中，我们可以通过 Image 组件来加载并显示图片哦',
+                              bottomMessage == '' ? '未设置底部消息' : bottomMessage,
+                              // '同学你好！Flutter 中，我们可以通过 Image 组件来加载并显示图片哦',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 11),
+                              style: const TextStyle(fontSize: 11),
                               overflow: TextOverflow.ellipsis,
                             ))
                           ],
@@ -165,13 +213,21 @@ class _PreviewState extends State<Preview> {
                           renderTheme(currentTheme),
                           const SizedBox(height: 10),
                           Row(
-                            children: const [
-                              Text('底部消息: '),
-                              Expanded(child: TextField())
+                            children: [
+                              const Text('底部消息: '),
+                              Expanded(
+                                  child: TextField(
+                                controller: bottomMessageController,
+                                onChanged: (e) {
+                                  setState(() {
+                                    bottomMessage = e;
+                                  });
+                                },
+                              ))
                             ],
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(top: 60),
+                            padding: const EdgeInsets.only(top: 40),
                             child: ConstrainedBox(
                               constraints: const BoxConstraints.expand(
                                   height: 40.0, width: 300),

@@ -2,6 +2,7 @@ import 'package:esp8266_tft/views/connection/connection.dart';
 import 'package:esp8266_tft/views/debug/debug.dart';
 import 'package:esp8266_tft/views/preview/preview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
       title: '电子相框',
       theme: ThemeData(primaryColor: Colors.white),
       home: const MyStackPage(),
+      builder: EasyLoading.init(),
     );
   }
 }
