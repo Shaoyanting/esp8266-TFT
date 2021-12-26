@@ -8,7 +8,7 @@
 .buildlog/
 .history
 .svn/
-
+.idea
 build
 
 # IntelliJ related
