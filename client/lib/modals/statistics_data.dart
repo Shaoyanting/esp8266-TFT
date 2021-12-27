@@ -15,10 +15,10 @@ class StatisticsData {
     for (var element in data) {
       statisticsItemList.add(StatisticsItem(
           element['id'],
-          element['upTimestamp'],
-          element['clientId'],
-          element['temp'],
-          element['hum']));
+          element['up_timestamp'],
+          element['client_id'],
+          element['temp'].toDouble(),
+          element['hum'].toDouble()));
     }
   }
 }
