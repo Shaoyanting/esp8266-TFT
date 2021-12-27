@@ -39,6 +39,9 @@ dependencies:
   shared_preferences: ^2.0.11
   flutter_easyloading: ^3.0.3
   wc_form_validators: ^1.0.0
+  graphic: ^0.6.2
+  intl: ^0.17.0
+  dio: ^4.0.4
 
 dev_dependencies:
   flutter_test:

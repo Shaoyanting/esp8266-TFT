@@ -43,7 +43,7 @@ class _MyStackPageState extends State<MyStackPage> {
         items: [
           createItem(Icons.connected_tv, '连接'),
           createItem(Icons.remove_red_eye, '预览'),
-          createItem(Icons.adb, '调试'),
+          createItem(Icons.analytics_outlined, '统计'),
         ],
         onTap: (index) {
           setState(() {

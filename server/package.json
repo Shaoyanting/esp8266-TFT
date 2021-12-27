@@ -5,21 +5,22 @@
   "private": true,
   "dependencies": {
     "@midwayjs/bootstrap": "^2.3.0",
-    "@midwayjs/cache": "^2.14.0",
     "@midwayjs/core": "^2.3.0",
     "@midwayjs/decorator": "^2.3.0",
     "@midwayjs/koa": "^2.3.0",
+    "@midwayjs/orm": "^2.14.0",
     "axios": "^0.24.0",
-    "cache-manager": "^3.6.0",
     "koa-bodyparser": "^4.3.0",
-    "source-map": "^0.7.3"
+    "moment": "^2.29.1",
+    "mysql2": "^2.3.3",
+    "source-map": "^0.7.3",
+    "typeorm": "^0.2.41"
   },
   "devDependencies": {
     "@attachments/eslint-plugin": "^0.1.21",
     "@midwayjs/cli": "^1.0.0",
     "@midwayjs/luckyeye": "^1.0.0",
     "@midwayjs/mock": "^2.3.0",
-    "@types/cache-manager": "^3.4.2",
     "@types/jest": "^26.0.10",
     "@types/koa-bodyparser": "^4.3.0",
     "@types/node": "14",
