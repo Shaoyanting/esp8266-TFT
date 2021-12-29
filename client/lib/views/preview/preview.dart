@@ -20,7 +20,7 @@ class _PreviewState extends State<Preview> {
   int currentTheme = 0;
   Uint8List? currentImageByteList;
   String bottomMessage = '';
-
+  String currentTimeGap = '4';
   final TextEditingController pathController = TextEditingController();
   final TextEditingController messageListController = TextEditingController();
   final TextEditingController bottomMessageController = TextEditingController();
@@ -45,8 +45,13 @@ class _PreviewState extends State<Preview> {
     // 中部消息
     String? middleMessage = prefs.getString(MIDDLE_MESSAGE_KEY);
 
+    // 时间间隔
+    String? timeGap = prefs.getString(TIME_GAP_KEY);
+
     setState(() {
       this.bottomMessage = bottomMessage ?? '';
+      currentTimeGap = timeGap ?? '4';
+
       bottomMessageController.value =
           TextEditingValue(text: bottomMessage ?? '');
 
@@ -110,10 +115,13 @@ class _PreviewState extends State<Preview> {
             BOTTOM_MESSAGE_KEY, bottomMessageController.value.text);
         await prefs.setString(
             MIDDLE_MESSAGE_KEY, middleMessageController.value.text);
+        await prefs.setString(TIME_GAP_KEY, currentTimeGap);
+
         connectManager.publishMessage(
             TIP_TOPIC, middleMessageController.value.text);
         connectManager.publishMessage(
             CHAT_TOPIC, bottomMessageController.value.text);
+        connectManager.publishMessage(CONTROL_TOPIC, 'bj$currentTimeGap');
         EasyLoading.showSuccess('保存成功!');
       }
     });
@@ -129,6 +137,36 @@ class _PreviewState extends State<Preview> {
         currentImageByteList = imageByteList;
       });
     }
+  }
+
+  List<DropdownMenuItem> generateItemList() {
+    final List<DropdownMenuItem> items = [];
+    const DropdownMenuItem item1 = DropdownMenuItem(
+      child: Text('5 秒一次'),
+      value: '1',
+    );
+    const DropdownMenuItem item2 = DropdownMenuItem(
+      child: Text('10 秒一次'),
+      value: '2',
+    );
+    const DropdownMenuItem item3 = DropdownMenuItem(
+      child: Text('30 秒一次'),
+      value: '3',
+    );
+    const DropdownMenuItem item4 = DropdownMenuItem(
+      child: Text('60 秒一次'),
+      value: '4',
+    );
+    const DropdownMenuItem item5 = DropdownMenuItem(
+      child: Text('300 秒一次'),
+      value: '5',
+    );
+    items.add(item1);
+    items.add(item2);
+    items.add(item3);
+    items.add(item4);
+    items.add(item5);
+    return items;
   }
 
   @override
@@ -247,6 +285,28 @@ class _PreviewState extends State<Preview> {
                                   });
                                 },
                               ))
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              const Text('背景刷新: '),
+                              Expanded(
+                                  child: DropdownButton<dynamic>(
+                                      // 提示文本
+                                      hint: const Text('选择'),
+                                      // 下拉列表的数据
+                                      items: generateItemList(),
+                                      // 改变事件
+                                      onChanged: (value) {
+                                        setState(() {
+                                          currentTimeGap = value;
+                                        });
+                                      },
+                                      // 是否撑满
+                                      isExpanded: true,
+                                      value: currentTimeGap,
+                                      // 图标大小
+                                      iconSize: 48))
                             ],
                           ),
                           Padding(

@@ -1,6 +1,7 @@
 const BACKGROUND_IMAGE_KEY = 'background-image';
 const MIDDLE_MESSAGE_KEY = 'middle-message';
 const BOTTOM_MESSAGE_KEY = 'bottom-message';
+const TIME_GAP_KEY = 'time-gap';
 
 // 图片显示
 const PHOTO_TOPIC = 'ZUCC-SYT/photo';
