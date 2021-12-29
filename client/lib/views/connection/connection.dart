@@ -97,7 +97,7 @@ class _ConnectionContentState extends State<ConnectionContent> {
         key: _formKey,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
+          child: ListView(
             children: [
               TextFormField(
                 controller: addressController,

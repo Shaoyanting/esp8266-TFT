@@ -22,8 +22,9 @@ class _PreviewState extends State<Preview> {
   String bottomMessage = '';
 
   final TextEditingController pathController = TextEditingController();
-  TextEditingController messageListController = TextEditingController();
+  final TextEditingController messageListController = TextEditingController();
   final TextEditingController bottomMessageController = TextEditingController();
+  final TextEditingController middleMessageController = TextEditingController();
 
   @override
   initState() {
@@ -41,10 +42,16 @@ class _PreviewState extends State<Preview> {
     // 底部消息
     String? bottomMessage = prefs.getString(BOTTOM_MESSAGE_KEY);
 
+    // 中部消息
+    String? middleMessage = prefs.getString(MIDDLE_MESSAGE_KEY);
+
     setState(() {
       this.bottomMessage = bottomMessage ?? '';
       bottomMessageController.value =
           TextEditingValue(text: bottomMessage ?? '');
+
+      middleMessageController.value =
+          TextEditingValue(text: middleMessage ?? '');
 
       if (imageByteList != null) {
         currentImageByteList =
@@ -101,7 +108,10 @@ class _PreviewState extends State<Preview> {
         }
         await prefs.setString(
             BOTTOM_MESSAGE_KEY, bottomMessageController.value.text);
-
+        await prefs.setString(
+            MIDDLE_MESSAGE_KEY, middleMessageController.value.text);
+        connectManager.publishMessage(
+            TIP_TOPIC, middleMessageController.value.text);
         connectManager.publishMessage(
             CHAT_TOPIC, bottomMessageController.value.text);
         EasyLoading.showSuccess('保存成功!');
@@ -129,7 +139,7 @@ class _PreviewState extends State<Preview> {
         ),
         body: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
+            child: ListView(
               children: [
                 DecoratedBox(
                   decoration: BoxDecoration(
@@ -210,21 +220,20 @@ class _PreviewState extends State<Preview> {
                                 // 按钮组的值
                                 groupValue: currentTheme,
                               ),
-                              const Text('图片展示'),
-                              const SizedBox(width: 20),
-                              Radio(
-                                // 按钮的值
-                                value: 1,
-                                // 改变事件
-                                onChanged: null,
-                                // 按钮组的值
-                                groupValue: currentTheme,
-                              ),
-                              const Text('列表信息')
+                              const Text('图片展示')
                             ],
                           ),
                           const SizedBox(height: 10),
                           renderTheme(currentTheme),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              const Text('中部消息: '),
+                              Expanded(
+                                  child: TextField(
+                                      controller: middleMessageController))
+                            ],
+                          ),
                           const SizedBox(height: 10),
                           Row(
                             children: [

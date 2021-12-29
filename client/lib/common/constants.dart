@@ -1,4 +1,5 @@
 const BACKGROUND_IMAGE_KEY = 'background-image';
+const MIDDLE_MESSAGE_KEY = 'middle-message';
 const BOTTOM_MESSAGE_KEY = 'bottom-message';
 
 // 图片显示
