@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:esp8266_tft/common/constants.dart';
+import 'package:esp8266_tft/utils/mqtt.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Preview extends StatefulWidget {
@@ -79,16 +81,31 @@ class _PreviewState extends State<Preview> {
   }
 
   Future<void> saveAndSync() async {
-    EasyLoading.show(status: '保存中...');
+    // 保存并同步
     Future.delayed(const Duration(milliseconds: 1000), () async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      if (currentImageByteList != null) {
-        await prefs.setStringList(BACKGROUND_IMAGE_KEY,
-            currentImageByteList!.map((e) => e.toString()).toList());
+      MqttClient? client = connectManager.getConnection();
+      if (client != null) {
+        print('===== 保存中 =====');
+        EasyLoading.show(status: '保存中...');
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        if (currentImageByteList != null) {
+          print('===== 开始保存图片 大小: ${currentImageByteList!.length} =====');
+          await prefs.setStringList(BACKGROUND_IMAGE_KEY,
+              currentImageByteList!.map((e) => e.toString()).toList());
+          connectManager.publishMessage(
+              BACKGROUND_IMAGE_KEY,
+              currentImageByteList!
+                  .map((e) => e.toString())
+                  .toList()
+                  .toString());
+        }
+        await prefs.setString(
+            BOTTOM_MESSAGE_KEY, bottomMessageController.value.text);
+
+        connectManager.publishMessage(
+            CHAT_TOPIC, bottomMessageController.value.text);
+        EasyLoading.showSuccess('保存成功!');
       }
-      await prefs.setString(
-          BOTTOM_MESSAGE_KEY, bottomMessageController.value.text);
-      EasyLoading.showSuccess('保存成功!');
     });
   }
 
@@ -97,6 +114,7 @@ class _PreviewState extends State<Preview> {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       Uint8List imageByteList = await image.readAsBytes();
+
       setState(() {
         currentImageByteList = imageByteList;
       });
@@ -198,11 +216,7 @@ class _PreviewState extends State<Preview> {
                                 // 按钮的值
                                 value: 1,
                                 // 改变事件
-                                onChanged: (value) {
-                                  setState(() {
-                                    currentTheme = 1;
-                                  });
-                                },
+                                onChanged: null,
                                 // 按钮组的值
                                 groupValue: currentTheme,
                               ),

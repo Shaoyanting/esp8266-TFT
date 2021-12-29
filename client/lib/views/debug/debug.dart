@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:esp8266_tft/common/constants.dart';
 import 'package:esp8266_tft/modals/statistics_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -34,8 +35,8 @@ class _DebugState extends State<Debug> {
   StatisticsData? statisticsData;
 
   Future<void> getTempAndHumData() async {
-    var response = await Dio().get(
-        'http://172.20.10.4:7001/get-statistics?clientId=esp8266-30:83:98:A4:F7:6F');
+    var response = await Dio().get(NODE_SERVER_ADDRESS +
+        '/get-statistics?clientId=esp8266-30:83:98:A4:F7:6F');
     var dataList = response.data['data'];
     StatisticsData statisticsData = StatisticsData(dataList);
     setState(() {

@@ -1,5 +1,5 @@
+import 'package:esp8266_tft/common/constants.dart';
 import 'package:esp8266_tft/utils/mqtt.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -37,10 +37,14 @@ class ConnectionContent extends StatefulWidget {
 
 class _ConnectionContentState extends State<ConnectionContent> {
   final GlobalKey _formKey = GlobalKey<FormState>();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController portController = TextEditingController();
-  final TextEditingController userNameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController addressController =
+      TextEditingController(text: MQTT_SERVER_ADDRESS);
+  final TextEditingController portController =
+      TextEditingController(text: MQTT_SERVER_PORT.toString());
+  final TextEditingController userNameController =
+      TextEditingController(text: MQTT_SERVER_DEFAULT_USER_NAME);
+  final TextEditingController passwordController =
+      TextEditingController(text: MQTT_SERVER_DEFAULT_PASSWORD);
 
   ConnectStatus currentStatus = ConnectStatus.NOT_CONNECTED;
 
@@ -55,7 +59,7 @@ class _ConnectionContentState extends State<ConnectionContent> {
           currentStatus = ConnectStatus.CONNECTING;
         });
         EasyLoading.show(status: '连接中...');
-        await connect(
+        await connectManager.connect(
             addressController.value.text,
             int.parse(portController.value.text),
             userNameController.value.text,
@@ -63,6 +67,7 @@ class _ConnectionContentState extends State<ConnectionContent> {
 
         // await connect('118.31.246.213', 1883, 'yzl', 'password');
         EasyLoading.showSuccess('连接成功!');
+        connectManager.subscribeAll();
         setState(() {
           currentStatus = ConnectStatus.CONNECTED;
         });
@@ -74,14 +79,14 @@ class _ConnectionContentState extends State<ConnectionContent> {
       }
     } else if (currentStatus == ConnectStatus.CONNECTED) {
       EasyLoading.show(status: '正在断开连接...');
-      MqttClient? client = getConnection();
+      MqttClient? client = connectManager.getConnection();
       if (client != null) {
         client.disconnect();
+        EasyLoading.showSuccess('连接已断开');
+        setState(() {
+          currentStatus = ConnectStatus.NOT_CONNECTED;
+        });
       }
-      EasyLoading.showSuccess('连接已断开');
-      setState(() {
-        currentStatus = ConnectStatus.NOT_CONNECTED;
-      });
     }
   }
 
@@ -127,6 +132,7 @@ class _ConnectionContentState extends State<ConnectionContent> {
                   validator: Validators.compose([
                     Validators.required('请填写密码'),
                   ]),
+                  obscureText: true,
                   decoration: const InputDecoration(
                       labelText: '密码', icon: Icon(Icons.lock))),
               Padding(
