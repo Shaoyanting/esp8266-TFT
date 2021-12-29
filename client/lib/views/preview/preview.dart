@@ -1,11 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:esp8266_tft/common/constants.dart';
 import 'package:esp8266_tft/utils/mqtt.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:esp8266_tft/views/connection/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,8 +14,7 @@ class Preview extends StatefulWidget {
 }
 
 class _PreviewState extends State<Preview> {
-  int currentTheme = 0;
-  Uint8List? currentImageByteList;
+  String currentImageNumber = '1';
   String bottomMessage = '';
   String currentTimeGap = '4';
   final TextEditingController pathController = TextEditingController();
@@ -37,7 +33,7 @@ class _PreviewState extends State<Preview> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // 图片资源
-    List<String>? imageByteList = prefs.getStringList(BACKGROUND_IMAGE_KEY);
+    String? imageNumber = prefs.getString(BACKGROUND_IMAGE_NUMBER_KEY);
 
     // 底部消息
     String? bottomMessage = prefs.getString(BOTTOM_MESSAGE_KEY);
@@ -58,38 +54,8 @@ class _PreviewState extends State<Preview> {
       middleMessageController.value =
           TextEditingValue(text: middleMessage ?? '');
 
-      if (imageByteList != null) {
-        currentImageByteList =
-            Uint8List.fromList(imageByteList.map((e) => int.parse(e)).toList());
-      }
+      currentImageNumber = imageNumber ?? '1';
     });
-  }
-
-  Row renderTheme(int themeType) {
-    if (themeType == 0) {
-      return Row(
-        children: [
-          const Text('上传图片: '),
-          ElevatedButton(
-            onPressed: uploadImage,
-            child: const Text('点我上传'),
-          )
-        ],
-      );
-    }
-
-    return Row(
-      children: [
-        const Text('消息列表: '),
-        Expanded(
-            child: TextField(
-          controller: messageListController,
-          minLines: 1,
-          maxLines: 5,
-          maxLength: 100,
-        ))
-      ],
-    );
   }
 
   Future<void> saveAndSync() async {
@@ -97,24 +63,17 @@ class _PreviewState extends State<Preview> {
     Future.delayed(const Duration(milliseconds: 1000), () async {
       MqttClient? client = connectManager.getConnection();
       if (client != null) {
-        print('===== 保存中 =====');
         EasyLoading.show(status: '保存中...');
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        if (currentImageByteList != null) {
-          print('===== 开始保存图片 大小: ${currentImageByteList!.length} =====');
-          await prefs.setStringList(BACKGROUND_IMAGE_KEY,
-              currentImageByteList!.map((e) => e.toString()).toList());
-          connectManager.publishMessage(
-              PHOTO_TOPIC,
-              currentImageByteList!
-                  .map((e) => e.toString())
-                  .toList()
-                  .toString());
-        }
+        await prefs.setString(BACKGROUND_IMAGE_NUMBER_KEY, currentImageNumber);
+        connectManager.publishMessage(PHOTO_TOPIC, currentImageNumber);
+
         await prefs.setString(
             BOTTOM_MESSAGE_KEY, bottomMessageController.value.text);
+
         await prefs.setString(
             MIDDLE_MESSAGE_KEY, middleMessageController.value.text);
+
         await prefs.setString(TIME_GAP_KEY, currentTimeGap);
 
         connectManager.publishMessage(
@@ -127,16 +86,23 @@ class _PreviewState extends State<Preview> {
     });
   }
 
-  Future<void> uploadImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      Uint8List imageByteList = await image.readAsBytes();
-
-      setState(() {
-        currentImageByteList = imageByteList;
-      });
-    }
+  List<DropdownMenuItem> generateThemeList() {
+    return SUPPORTED_THEMES.map((e) {
+      return DropdownMenuItem(
+        child: Row(
+          children: [
+            Image(
+              image: e.image,
+              alignment: AlignmentDirectional.center,
+              fit: BoxFit.fitWidth,
+              height: 40,
+            ),
+            Text(e.name)
+          ],
+        ),
+        value: e.key,
+      );
+    }).toList();
   }
 
   List<DropdownMenuItem> generateItemList() {
@@ -205,18 +171,17 @@ class _PreviewState extends State<Preview> {
                           ],
                         ),
                         Row(
-                          children: [
+                          children: const [
                             Expanded(
                                 child: Padding(
-                              padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
-                              child: currentImageByteList != null
-                                  ? Image(
-                                      image: MemoryImage(currentImageByteList!),
-                                      alignment: AlignmentDirectional.center,
-                                      fit: BoxFit.fitWidth,
-                                      height: 180,
-                                    )
-                                  : null,
+                              padding: EdgeInsets.fromLTRB(2, 8, 2, 8),
+                              child: Image(
+                                image: NetworkImage(
+                                    'http://cdn.yuzzl.top/1179662.jpg'),
+                                alignment: AlignmentDirectional.center,
+                                fit: BoxFit.fitWidth,
+                                height: 180,
+                              ),
                             ))
                           ],
                         ),
@@ -225,7 +190,6 @@ class _PreviewState extends State<Preview> {
                             Expanded(
                                 child: Text(
                               bottomMessage == '' ? '未设置底部消息' : bottomMessage,
-                              // '同学你好！Flutter 中，我们可以通过 Image 组件来加载并显示图片哦',
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 11),
                               overflow: TextOverflow.ellipsis,
@@ -246,23 +210,26 @@ class _PreviewState extends State<Preview> {
                           Row(
                             children: [
                               const Text('选择主题: '),
-                              Radio(
-                                // 按钮的值
-                                value: 0,
-                                // 改变事件
-                                onChanged: (value) {
-                                  setState(() {
-                                    currentTheme = 0;
-                                  });
-                                },
-                                // 按钮组的值
-                                groupValue: currentTheme,
-                              ),
-                              const Text('图片展示')
+                              Expanded(
+                                  child: DropdownButton<dynamic>(
+                                      // 提示文本
+                                      hint: const Text('选择'),
+                                      itemHeight: 60,
+                                      // 下拉列表的数据
+                                      items: generateThemeList(),
+                                      // 改变事件
+                                      onChanged: (value) {
+                                        setState(() {
+                                          currentImageNumber = value;
+                                        });
+                                      },
+                                      // 是否撑满
+                                      isExpanded: true,
+                                      value: currentImageNumber,
+                                      iconSize: 48,
+                                      menuMaxHeight: 300)),
                             ],
                           ),
-                          const SizedBox(height: 10),
-                          renderTheme(currentTheme),
                           const SizedBox(height: 10),
                           Row(
                             children: [
