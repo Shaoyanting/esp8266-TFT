@@ -93,7 +93,7 @@ class _PreviewState extends State<Preview> {
           await prefs.setStringList(BACKGROUND_IMAGE_KEY,
               currentImageByteList!.map((e) => e.toString()).toList());
           connectManager.publishMessage(
-              BACKGROUND_IMAGE_KEY,
+              PHOTO_TOPIC,
               currentImageByteList!
                   .map((e) => e.toString())
                   .toList()

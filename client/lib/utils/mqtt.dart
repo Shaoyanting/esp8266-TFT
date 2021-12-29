@@ -50,11 +50,10 @@ class MqttManager {
       });
 
       client!.published?.listen((MqttPublishMessage message) {
-        print('published');
         final payload =
             MqttPublishPayload.bytesToStringAsString(message.payload.message);
         print(
-            'Published message: $payload to topic: ${message.variableHeader?.topicName}');
+            '成功订阅主题: $payload to topic: ${message.variableHeader?.topicName}');
       });
     } else {
       print(
