@@ -16,7 +16,7 @@ const CHAT_TOPIC = 'ZUCC-SYT/chat';
 const CONTROL_TOPIC = 'ZUCC-SYT/control';
 
 // 远程服务器地址
-const NODE_SERVER_ADDRESS = 'http://101.34.29.204:7002';
+const NODE_SERVER_ADDRESS = 'http://81.68.204.179:7002';
 
 // MQTT 服务器地址
 const MQTT_SERVER_ADDRESS = 'i016ea02.cn-hangzhou.emqxcloud.cn';

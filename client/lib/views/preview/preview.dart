@@ -14,9 +14,9 @@ class Preview extends StatefulWidget {
 }
 
 class _PreviewState extends State<Preview> {
-  String currentImageNumber = '1';
+  String currentImageNumber = '';
   String bottomMessage = '';
-  String currentTimeGap = '4';
+  String currentTimeGap = 'bj4';
   final TextEditingController pathController = TextEditingController();
   final TextEditingController messageListController = TextEditingController();
   final TextEditingController bottomMessageController = TextEditingController();
@@ -46,7 +46,7 @@ class _PreviewState extends State<Preview> {
 
     setState(() {
       this.bottomMessage = bottomMessage ?? '';
-      currentTimeGap = timeGap ?? '4';
+      currentTimeGap = timeGap ?? 'bj4';
 
       bottomMessageController.value =
           TextEditingValue(text: bottomMessage ?? '');
@@ -54,7 +54,7 @@ class _PreviewState extends State<Preview> {
       middleMessageController.value =
           TextEditingValue(text: middleMessage ?? '');
 
-      currentImageNumber = imageNumber ?? '1';
+      currentImageNumber = imageNumber ?? '';
     });
   }
 
@@ -80,14 +80,16 @@ class _PreviewState extends State<Preview> {
             TIP_TOPIC, middleMessageController.value.text);
         connectManager.publishMessage(
             CHAT_TOPIC, bottomMessageController.value.text);
-        connectManager.publishMessage(CONTROL_TOPIC, 'bj$currentTimeGap');
+        connectManager.publishMessage(CONTROL_TOPIC, currentTimeGap);
         EasyLoading.showSuccess('保存成功!');
       }
     });
   }
 
   List<DropdownMenuItem> generateThemeList() {
-    return SUPPORTED_THEMES.map((e) {
+    List<DropdownMenuItem> tmp = [];
+    tmp.add(const DropdownMenuItem(child: Text('无主题'), value: ''));
+    tmp.addAll(SUPPORTED_THEMES.map((e) {
       return DropdownMenuItem(
         child: Row(
           children: [
@@ -102,36 +104,43 @@ class _PreviewState extends State<Preview> {
         ),
         value: e.key,
       );
-    }).toList();
+    }).toList());
+    return tmp;
   }
 
   List<DropdownMenuItem> generateItemList() {
     final List<DropdownMenuItem> items = [];
     const DropdownMenuItem item1 = DropdownMenuItem(
       child: Text('5 秒一次'),
-      value: '1',
+      value: 'bj1',
     );
     const DropdownMenuItem item2 = DropdownMenuItem(
       child: Text('10 秒一次'),
-      value: '2',
+      value: 'bj2',
     );
     const DropdownMenuItem item3 = DropdownMenuItem(
       child: Text('30 秒一次'),
-      value: '3',
+      value: 'bj3',
     );
     const DropdownMenuItem item4 = DropdownMenuItem(
       child: Text('60 秒一次'),
-      value: '4',
+      value: 'bj4',
     );
     const DropdownMenuItem item5 = DropdownMenuItem(
       child: Text('300 秒一次'),
-      value: '5',
+      value: 'bj5',
+    );
+    const DropdownMenuItem item6 = DropdownMenuItem(
+      child: Text('保持上次频率'),
+      value: 'hb',
     );
     items.add(item1);
     items.add(item2);
     items.add(item3);
     items.add(item4);
     items.add(item5);
+    items.add(item6);
+
     return items;
   }
 
@@ -171,13 +180,15 @@ class _PreviewState extends State<Preview> {
                           ],
                         ),
                         Row(
-                          children: const [
+                          children: [
                             Expanded(
                                 child: Padding(
-                              padding: EdgeInsets.fromLTRB(2, 8, 2, 8),
+                              padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
                               child: Image(
-                                image: NetworkImage(
-                                    'http://cdn.yuzzl.top/1179662.jpg'),
+                                image: NetworkImage(currentImageNumber != ''
+                                    ? 'http://cdn.yuzzl.top/esp8266-tft/$currentImageNumber.jpg'
+                                    : 'http://cdn.yuzzl.top/esp8266-tft/empty.png'),
+                                // 'http://cdn.yuzzl.top/1179662.jpg'),
                                 alignment: AlignmentDirectional.center,
                                 fit: BoxFit.fitWidth,
                                 height: 180,
